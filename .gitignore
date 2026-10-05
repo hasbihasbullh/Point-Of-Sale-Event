@@ -1,0 +1,25 @@
+# Node & Web Build
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Android Build & Gradle Caches
+.gradle/
+.kotlin/
+local.properties
+android-kasir-csm/build/
+android-kasir-csm/app/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Uploaded Media Assets & Custom Images (White Label)
+public/uploads/*
+!public/uploads/.gitkeep
+

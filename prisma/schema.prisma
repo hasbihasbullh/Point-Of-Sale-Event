@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model MasterMenu {
+  id            String       @id
+  nama          String
+  harga_default Float
+  kategori      String
+  foto          String?      @db.LongText
+  deskripsi     String?      @db.Text
+  kds_display   Boolean      @default(true)
+  aktif         Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  boothMenus    BoothMenu[]
+  orderItems    OrderItem[]
+
+  @@index([kategori])
+  @@index([aktif])
+}
+
+model Booth {
+  id              String      @id
+  kode            String      @unique
+  nama            String
+  aktif           Boolean     @default(true)
+  kiosk           Boolean     @default(false)
+  kds_active      Boolean     @default(true)
+  qris_image_path String?     @db.LongText
+  kategori_list   String?     @default("Makanan,Minuman,Cemilan")
+  pay_cash_active Boolean     @default(true)
+  pay_qris_active Boolean     @default(true)
+  pay_edc_active  Boolean     @default(true)
+  voucher_active  Boolean     @default(true)
+  voucher_nominal Int         @default(5000)
+  
+  boothMenus      BoothMenu[]
+  orders          Order[]
+}
+
+model BoothMenu {
+  id             String     @id
+  booth_id       String
+  master_menu_id String
+  harga          Float
+  stok           Int?
+  kds_display    Boolean?
+  tersedia       Boolean    @default(true)
+  urutan         Int        @default(0)
+
+  booth          Booth      @relation(fields: [booth_id], references: [id], onDelete: Cascade)
+  masterMenu     MasterMenu @relation(fields: [master_menu_id], references: [id], onDelete: Cascade)
+
+  @@unique([booth_id, master_menu_id])
+  @@index([booth_id])
+  @@index([master_menu_id])
+}
+
+model Order {
+  id             String      @id
+  booth_id       String
+  booth_kode     String
+  booth_nama     String
+  nomor_order    String
+  sumber         String
+  metode_bayar   String
+  nama_pelanggan String?
+  total          Float
+  diskon         Float       @default(0)
+  uang_bayar     Float?
+  kembalian      Float?
+  no_referensi   String?
+  status         String
+  alasan_void    String?
+  created_at     String
+  booth          Booth       @relation(fields: [booth_id], references: [id], onDelete: Cascade)
+  items          OrderItem[]
+
+  @@index([booth_id, created_at])
+  @@index([created_at])
+  @@index([status])
+}
+
+model OrderItem {
+  id             String      @id
+  order_id       String
+  master_menu_id String?
+  nama_item      String
+  harga          Float
+  qty            Int
+  catatan        String?
+  kds_display    Boolean     @default(true)
+  order          Order       @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  masterMenu     MasterMenu? @relation(fields: [master_menu_id], references: [id], onDelete: SetNull)
+
+  @@index([order_id])
+  @@index([master_menu_id])
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  username            String    @unique
+  password            String
+  nama_lengkap        String?   @default("Administrator")
+  foto_avatar         String?   @db.LongText
+  role                String    @default("ADMIN")
+  is_default_password Boolean   @default(true)
+  last_login          DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now()) @updatedAt
+}
+
+model Sequence {
+  id    String @id
+  value Int    @default(0)
+}
+
+model EventSetting {
+  id              String   @id @default("default")
+  nama_event      String   @default("")
+  tanggal_event   String   @default("")
+  area_lokasi     String   @default("")
+  konektivitas    String   @default("")
+  client_merchant String   @default("")
+  footer_struk    String   @default("")
+  voucher_active  Boolean  @default(true)
+  voucher_nominal Int      @default(5000)
+  kiosk_banner    String   @default("")
+  updated_at      DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  nama        String   @unique
+  urutan      Int      @default(0)
+  warna       String?  @default("slate")
+  ikon        String?  @default("Tag")
+  aktif       Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([urutan])
+  @@index([aktif])
+}
+

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teleprompter GSA 2026 - M Hasbi Hasbullah</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --text-color: #f8fafc;
+      --accent-color: #38bdf8;
+      --highlight-color: #fbbf24;
+      --cue-color: #94a3b8;
+      --danger-color: #ef4444;
+      --success-color: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Control Bar */
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #334155;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .info-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #38bdf8;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #334155;
+      border-color: #64748b;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+    }
+
+    .timer-display {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1.5rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 8px;
+      background: #020617;
+      border: 2px solid #334155;
+      color: #38bdf8;
+      min-width: 110px;
+      text-align: center;
+    }
+
+    .timer-ideal {
+      color: var(--success-color);
+      border-color: var(--success-color);
+      animation: pulse 1.5s infinite;
+    }
+
+    .timer-warning {
+      color: var(--highlight-color);
+      border-color: var(--highlight-color);
+    }
+
+    .timer-danger {
+      color: var(--danger-color);
+      border-color: var(--danger-color);
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .speed-control input[type="range"] {
+      width: 100px;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+
+    /* Reading Container */
+    .prompter-container {
+      flex: 1;
+      position: relative;
+      overflow-y: scroll;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      scroll-behavior: smooth;
+    }
+
+    .prompter-container::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+
+    .prompter-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40vh 24px 60vh 24px;
+      text-align: center;
+      line-height: 1.6;
+      font-size: 32px;
+      font-weight: 600;
+      transition: font-size 0.2s ease;
+    }
+
+    .mirrored .prompter-content {
+      transform: scaleX(-1);
+    }
+
+    /* Eye Focus Guide */
+    .focus-overlay {
+      position: absolute;
+      top: 42%;
+      left: 0;
+      right: 0;
+      height: 110px;
+      pointer-events: none;
+      border-top: 2px dashed rgba(56, 189, 248, 0.35);
+      border-bottom: 2px dashed rgba(56, 189, 248, 0.35);
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, rgba(56, 189, 248, 0.08) 50%, rgba(56, 189, 248, 0.05) 100%);
+      z-index: 10;
+    }
+
+    .focus-arrow {
+      position: absolute;
+      top: calc(42% + 35px);
+      left: 20px;
+      color: #38bdf8;
+      font-size: 2rem;
+      font-weight: 900;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0.8;
+    }
+
+    /* Script Styling */
+    .section-badge {
+      display: inline-block;
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin: 40px 0 16px 0;
+    }
+
+    .bridge {
+      color: var(--highlight-color);
+      font-style: italic;
+      font-size: 0.85em;
+      margin: 24px 0;
+      opacity: 0.9;
+    }
+
+    .emphasis {
+      color: #38bdf8;
+      font-weight: 800;
+      text-decoration: underline text-decoration-color: rgba(56, 189, 248, 0.5);
+    }
+
+    .pause-mark {
+      display: block;
+      font-size: 0.6em;
+      color: #64748b;
+      margin: 8px 0;
+      font-weight: 500;
+    }
+
+    .line-break {
+      margin-bottom: 28px;
+    }
+
+    /* Floating Shortcuts Guide */
+    .shortcuts-help {
+      position: absolute;
+      bottom: 16px;
+      left: 24px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      z-index: 50;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="info-badge">
+      <div>
+        <div class="title">🎬 Teleprompter GSA 2026</div>
+        <div class="subtitle">M Hasbi Hasbullah — Target: 3m 35s - 3m 42s</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div id="timerDisplay" class="timer-display">00:00</div>
+      
+      <button id="togglePlayBtn" class="btn btn-primary" onclick="togglePlay()">
+        <span id="playIcon">▶️</span> <span id="playText">Mulai (Space)</span>
+      </button>
+
+      <button class="btn" onclick="resetPrompter()">
+        🔄 Reset
+      </button>
+
+      <div class="speed-control">
+        <span>⚡ Kecepatan:</span>
+        <input type="range" id="speedSlider" min="15" max="75" value="38" oninput="updateSpeed(this.value)">
+        <span id="speedVal">38</span>
+      </div>
+
+      <button class="btn" onclick="changeFontSize(2)">A+</button>
+      <button class="btn" onclick="changeFontSize(-2)">A-</button>
+      <button class="btn" onclick="toggleMirror()">🪞 Cermin</button>
+    </div>
+  </header>
+
+  <div class="focus-overlay"></div>
+  <div class="focus-arrow">▶</div>
+
+  <div id="prompterContainer" class="prompter-container">
+    <div id="prompterContent" class="prompter-content">
+
+      <!-- INTRO -->
+      <div class="section-badge">⏱️ [00:00 - 00:15] PERKENALAN</div>
+
+      <div class="line-break">
+        Halo, perkenalkan,<br>
+        nama saya <span class="emphasis">M Hasbi Hasbullah</span>.
+      </div>
+
+      <div class="line-break">
+        Saya mahasiswa <span class="emphasis">semester 5</span>,<br>
+        Program Studi Informatika,<br>
+        Fakultas Komputer dan Teknik,<br>
+        <span class="emphasis">Universitas Linggabuana PGRI Sukabumi</span>.
+      </div>
+
+      <div class="line-break">
+        Sehari-hari saya aktif mengeksplorasi teknologi baru<br>
+        dan mengerjakan proyek software development.
+      </div>
+
+      <div class="line-break">
+        Buat saya, teknologi yang hebat itu sederhana:<br>
+        <span class="emphasis">bisa dipakai untuk menyelesaikan masalah nyata.</span>
+      </div>
+
+      <div class="pause-mark">┈┈┈┈ [ Tarik Napas - 1 Detik ] ┈┈┈┈</div>
+
+      <!-- BRIDGE 1 -->
+      <div class="bridge">
+        ▸ Nah, ini juga jawaban untuk pertanyaan pertama:<br>
+        inovasi Google mana yang paling berdampak buat saya.
+      </div>
+
+      <!-- Q1 -->
+      <div class="section-badge">⏱️ [00:15 - 01:05] PERTANYAAN 1</div>
+
+      <div class="line-break">
+        Jawabannya <span class="emphasis">bertingkat</span>.
+      </div>
+
+      <div class="line-break">
+        Sehari-hari saya menggunakan <span class="emphasis">Gemini</span><br>
+        untuk riset tugas kuliah,<br>
+        pengembangan project, hingga brainstorming.
+      </div>
+
+      <div class="line-break">
+        Tapi yang benar-benar mengubah cara kerja saya adalah<br>
+        <span class="emphasis">Google AI Studio</span> untuk membuat prototype mandiri,
+      </div>
+
+      <div class="line-break">
+        dan <span class="emphasis">Google Antigravity</span><br>
+        untuk asistensi arsitektur sistem dan vibe coding.
+      </div>
+
+      <div class="line-break">
+        Buktinya, saya berhasil menyelesaikan sistem POS<br>
+        untuk event besar dalam waktu <span class="emphasis">kurang dari seminggu</span>,<br>
+        dan digunakan langsung di event<br>
+        <span class="emphasis">COME SEE MIE Wonderland</span>.
+      </div>
+
+      <div class="line-break">
+        Pergeseran pola pikir ini<br>
+        yang ingin saya bawa ke kampus.
+      </div>
+
+      <div class="line-break">
+        Kampus saya belum memiliki komunitas teknologi,<br>
+        dan teman-teman biasanya baru memanfaatkan AI<br>
+        sebatas tanya-jawab dasar.
+      </div>
+
+      <div class="line-break">
+        Rencana saya adalah mengadakan<br>
+        <span class="emphasis">workshop hands-on dua minggu sekali</span><br>
+        untuk 25 sampai 30 mahasiswa,
+      </div>
+
+      <div class="line-break">
+        dengan target setiap peserta pulang<br>
+        membawa <span class="emphasis">satu prototype aplikasi buatan mereka sendiri</span>.
+      </div>
+
+      <div class="pause-mark">┈┈┈┈ [ Tarik Napas - 1 Detik ] ┈┈┈┈</div>
+
+      <!-- BRIDGE 2 -->
+      <div class="bridge">
+        ▸ Tapi workshop intensif seperti itu bisa terasa berat bagi pemula.<br>
+        Jadi sebelum ke sana, saya butuh pintu masuk yang lebih santai.
+      </div>
+
+      <!-- Q2 -->
+      <div class="section-badge">⏱️ [01:05 - 01:50] PERTANYAAN 2</div>
+
+      <div class="line-break">
+        Acaranya saya beri nama <span class="emphasis">Ngulik Bareng</span>:
+      </div>
+
+      <div class="line-break">
+        sesi nongkrong santai di kantin kampus,<br>
+        seminggu sekali, sekitar satu jam.
+      </div>
+
+      <div class="line-break">
+        Kegiatan interaktif utamanya adalah<br>
+        <span class="emphasis">Prompt Battle</span>.
+      </div>
+
+      <div class="line-break">
+        Setiap peserta membawa tugas kuliah nyata<br>
+        yang sedang mereka kerjakan.
+      </div>
+
+      <div class="line-break">
+        Sesi pertama, mereka kerjakan<br>
+        dengan cara biasa memakai Gemini.
+      </div>
+
+      <div class="line-break">
+        Sesi kedua, saya berikan<br>
+        <span class="emphasis">teknik prompting baru yang lebih terstruktur</span>,<br>
+        lalu mereka selesaikan kembali masalah yang sama.
+      </div>
+
+      <div class="line-break">
+        Hasil kedua sesi kita tampilkan berdampingan<br>
+        agar mereka melihat langsung<br>
+        <span class="emphasis">lonjakan kualitas dan efisiensinya</span>.
+      </div>
+
+      <div class="line-break">
+        Peserta yang paling antusias di sesi ini<br>
+        akan saya ajak lanjut ke workshop intensif<br>
+        yang tadi saya ceritakan.
+      </div>
+
+      <div class="pause-mark">┈┈┈┈ [ Tarik Napas - 1 Detik ] ┈┈┈┈</div>
+
+      <!-- BRIDGE 3 -->
+      <div class="bridge">
+        ▸ Mengajak orang lain tentu tidak akan meyakinkan<br>
+        kalau saya sendiri belum pernah diuji di lapangan.<br>
+        Ini pengalaman saya saat menghadapi tantangan engineering yang sebenarnya.
+      </div>
+
+      <!-- Q3 -->
+      <div class="section-badge">⏱️ [01:50 - 02:50] PERTANYAAN 3</div>
+
+      <div class="line-break">
+        Terkait aplikasi POS yang saya ceritakan tadi,<br>
+        justru di sanalah saya belajar problem solving yang sesungguhnya.
+      </div>
+
+      <div class="line-break">
+        Sistem yang saya buat berjalan di <span class="emphasis">empat server lokal mini PC</span><br>
+        untuk booth utama,
+      </div>
+
+      <div class="line-break">
+        dan terhubung ke belasan tablet kasir bergerak<br>
+        melalui jaringan <span class="emphasis">WiFi Starlink</span>.
+      </div>
+
+      <div class="line-break">
+        Saat event pertama di Jakarta,<br>
+        sistem berjalan lancar di awal.
+      </div>
+
+      <div class="line-break">
+        Namun ketika volume transaksi melonjak drastis,<br>
+        jaringan mulai keteteran<br>
+        dan transaksi di tablet menjadi lambat.
+      </div>
+
+      <div class="line-break">
+        Menggunakan pendekatan<br>
+        <span class="emphasis">First-Principles Thinking</span> dan <span class="emphasis">Root Cause Analysis</span>,<br>
+        saya membedah akar masalahnya:
+      </div>
+
+      <div class="line-break" style="font-size: 1.1em; color: #fbbf24;">
+        "Kenapa setiap transaksi kasir harus selalu bergantung<br>
+        pada koneksi internet real-time?<br>
+        Kenapa tidak kita pisahkan saja?"
+      </div>
+
+      <div class="line-break">
+        Untuk event berikutnya di Bandung,<br>
+        saya merombak arsitekturnya menjadi <span class="emphasis">offline-first</span>.
+      </div>
+
+      <div class="line-break">
+        Menu dan transaksi diproses langsung<br>
+        di penyimpanan lokal tablet dalam hitungan milidetik.
+      </div>
+
+      <div class="line-break">
+        Setelah transaksi selesai,<br>
+        <span class="emphasis">sinkronisasi ke server pusat dilakukan secara otomatis</span><br>
+        di latar belakang saat jaringan tersedia.
+      </div>
+
+      <div class="line-break">
+        Hasilnya, transaksi di event Bandung<br>
+        berjalan <span class="emphasis">sangat stabil, cepat, dan tanpa hambatan jaringan</span>.
+      </div>
+
+      <div class="pause-mark">┈┈┈┈ [ Tarik Napas - 1 Detik ] ┈┈┈┈</div>
+
+      <!-- BRIDGE 4 -->
+      <div class="bridge">
+        ▸ Pengalaman itu membuktikan: teknologi memberikan dampak nyata<br>
+        jika kita berani menerapkannya pada masalah sesungguhnya.<br>
+        Itu juga fondasi misi saya yang terakhir.
+      </div>
+
+      <!-- Q4 -->
+      <div class="section-badge">⏱️ [02:50 - 03:38] PERTANYAAN 4 & CLOSING</div>
+
+      <div class="line-break">
+        Jika terpilih sebagai Google Student Ambassador,<br>
+        misi utama saya adalah mendorong rekan-rekan mahasiswa naik kelas:
+      </div>
+
+      <div class="line-break">
+        <span class="emphasis">dari sekadar pengguna AI,<br>
+        menjadi pencipta solusi dengan AI.</span>
+      </div>
+
+      <div class="line-break">
+        <span class="emphasis">Di lingkungan kampus</span>,<br>
+        saya ingin meninggalkan warisan berkelanjutan:
+      </div>
+
+      <div class="line-break">
+        mendirikan <span class="emphasis">komunitas teknologi pertama di kampus saya</span>,<br>
+        lengkap dengan regenerasi fasilitator.
+      </div>
+
+      <div class="line-break">
+        <span class="emphasis">Di luar kampus</span>,<br>
+        saya ingin membuktikan mahasiswa daerah seperti Sukabumi<br>
+        mampu berinovasi:
+      </div>
+
+      <div class="line-break">
+        dengan membawa pelatihan literasi AI dan teknologi terapan ini<br>
+        ke <span class="emphasis">siswa SMK serta pelaku UMKM lokal</span> di sekitar.
+      </div>
+
+      <div class="line-break" style="font-size: 1.1em;">
+        Saya <span class="emphasis">M Hasbi Hasbullah</span>,<br>
+        dan saya siap menjadi bagian dari<br>
+        <span class="emphasis">Google Student Ambassador 2026</span>.
+      </div>
+
+      <div class="line-break">
+        Terima kasih, dan sampai jumpa! 🙏✨
+      </div>
+
+      <div style="height: 300px;"></div>
+    </div>
+  </div>
+
+  <div class="shortcuts-help">
+    ⌨️ <b>Shortcuts:</b> [Spasi] Mulai/Pause | [↑ / ↓] Ubah Kecepatan | [Esc] Reset
+  </div>
+
+  <script>
+    let isPlaying = false;
+    let scrollInterval = null;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let speed = 38; // px per second approx
+    let currentFontSize = 32;
+    let isMirrored = false;
+
+    const container = document.getElementById('prompterContainer');
+    const content = document.getElementById('prompterContent');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const togglePlayBtn = document.getElementById('togglePlayBtn');
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60).toString().padStart(2, '0');
+      const s = (secs % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateTimerStyle() {
+      timerDisplay.classList.remove('timer-ideal', 'timer-warning', 'timer-danger');
+      if (secondsElapsed >= 235) { // 3:55+
+        timerDisplay.classList.add('timer-danger');
+      } else if (secondsElapsed >= 225) { // 3:45 - 3:55
+        timerDisplay.classList.add('timer-warning');
+      } else if (secondsElapsed >= 215) { // 3:35 - 3:45 (IDEAL FINISH)
+        timerDisplay.classList.add('timer-ideal');
+      }
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        pausePrompter();
+      } else {
+        startPrompter();
+      }
+    }
+
+    function startPrompter() {
+      isPlaying = true;
+      playIcon.textContent = '⏸️';
+      playText.textContent = 'Pause';
+      togglePlayBtn.style.background = '#eab308';
+      togglePlayBtn.style.borderColor = '#facc15';
+
+      // Start scrolling
+      const stepMs = 30;
+      scrollInterval = setInterval(() => {
+        const step = (speed * stepMs) / 1000;
+        container.scrollTop += step;
+      }, stepMs);
+
+      // Start Stopwatch
+      if (!timerInterval) {
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          timerDisplay.textContent = formatTime(secondsElapsed);
+          updateTimerStyle();
+        }, 1000);
+      }
+    }
+
+    function pausePrompter() {
+      isPlaying = false;
+      playIcon.textContent = '▶️';
+      playText.textContent = 'Lanjut';
+      togglePlayBtn.style.background = '#0284c7';
+      togglePlayBtn.style.borderColor = '#38bdf8';
+
+      clearInterval(scrollInterval);
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function resetPrompter() {
+      pausePrompter();
+      container.scrollTop = 0;
+      secondsElapsed = 0;
+      timerDisplay.textContent = '00:00';
+      timerDisplay.classList.remove('timer-ideal', 'timer-warning', 'timer-danger');
+      playText.textContent = 'Mulai (Space)';
+    }
+
+    function updateSpeed(val) {
+      speed = parseInt(val, 10);
+      document.getElementById('speedVal').textContent = speed;
+      if (isPlaying) {
+        pausePrompter();
+        startPrompter();
+      }
+    }
+
+    function changeFontSize(delta) {
+      currentFontSize = Math.max(20, Math.min(64, currentFontSize + delta));
+      content.style.fontSize = currentFontSize + 'px';
+    }
+
+    function toggleMirror() {
+      isMirrored = !isMirrored;
+      document.body.classList.toggle('mirrored', isMirrored);
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        resetPrompter();
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        const slider = document.getElementById('speedSlider');
+        slider.value = Math.min(75, parseInt(slider.value, 10) + 3);
+        updateSpeed(slider.value);
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        const slider = document.getElementById('speedSlider');
+        slider.value = Math.max(15, parseInt(slider.value, 10) - 3);
+        updateSpeed(slider.value);
+      }
+    });
+  </script>
+</body>
+</html>

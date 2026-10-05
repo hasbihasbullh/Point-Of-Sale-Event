@@ -1,0 +1,8 @@
+{
+  "name": "Point of Sale Event System",
+  "description": "Sistem POS Point of Sale, Self-Service Kiosk, dan Kitchen Display System (KDS) terintegrasi untuk event Festival Kuliner & Event Organizer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
