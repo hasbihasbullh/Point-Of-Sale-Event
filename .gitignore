@@ -12,8 +12,8 @@ coverage/
 .gradle/
 .kotlin/
 local.properties
-android-kasir-csm/build/
-android-kasir-csm/app/build/
+android-kasir-pos-event/build/
+android-kasir-pos-event/app/build/
 *.apk
 *.aab
 *.jks

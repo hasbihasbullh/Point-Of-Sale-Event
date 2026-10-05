@@ -53,28 +53,33 @@ A fast, lightweight, and offline-first mobile cashier application built natively
 ## 🛠️ Setup & Build Instructions
 
 ### Prerequisites
+
 - **Android Studio**: Ladybug (2024.2+) or newer
 - **JDK**: Java 17 or Java 21
 - **Target SDK**: Android 14 (API 34)
 - **Minimum SDK**: Android 8.0 Oreo (API 26)
 
 ### 1. Open Project in Android Studio
+
 1. Launch **Android Studio**.
 2. Select **Open** and navigate to:
    ```
-   c:\laragon\www\csm\android-kasir-csm
+   c:\laragon\www\csm\android-kasir-pos-event
    ```
 3. Allow Gradle to download dependencies and sync the project.
 
 ### 2. Run on Physical Device (USB Debugging)
+
 1. On your Android phone, enable **Developer Options** and turn on **USB Debugging**.
 2. Connect the phone to your computer via USB.
 3. Select your device from the target device dropdown in Android Studio and click **Run 'app' (▶️)**.
 
 ### 3. Build Production / Distribution APK
+
 To generate a standalone `.apk` for installing directly on cashier smartphones:
+
 ```bash
-# On Windows PowerShell / Command Prompt (from android-kasir-csm/ directory)
+# On Windows PowerShell / Command Prompt (from android-kasir-pos-event/ directory)
 .\gradlew assembleDebug
 
 # Output APK path:
@@ -86,6 +91,7 @@ To generate a standalone `.apk` for installing directly on cashier smartphones:
 ## 📋 On-Site Cashier Standard Operating Procedure (SOP)
 
 ### Phase 1: Device Configuration & Server Pairing
+
 1. Connect the Android phone to the local POS Wi-Fi network (or festival LAN).
 2. Launch the **POS Kasir** app.
 3. In the initial setup screen, enter the local server address (e.g., `http://192.168.1.100:3000`).
@@ -93,11 +99,13 @@ To generate a standalone `.apk` for installing directly on cashier smartphones:
 5. Select the designated booth (e.g., `[A01] Wings Station`) and tap **Lock Device**.
 
 ### Phase 2: Bluetooth Printer Setup
+
 1. Turn on your portable thermal belt printer (58mm or 80mm).
 2. Pair the printer with your Android device via standard Android Bluetooth settings.
 3. In the POS app, tap the **Bluetooth Icon** in the top-right corner and select your paired thermal printer.
 
 ### Phase 3: Processing Orders
+
 1. Tap menu cards to add items to the cart. Adjust quantities or add notes directly.
 2. Tap the floating **Cart Drawer** at the bottom.
 3. Select the payment method:
@@ -108,11 +116,13 @@ To generate a standalone `.apk` for installing directly on cashier smartphones:
 5. The receipt prints automatically via Bluetooth.
 
 ### Phase 4: Voiding / Cancelling a Transaction
+
 1. Tap **Recent Orders** from the top bar.
 2. Locate the transaction and tap **Void Order**.
 3. Confirm the cancellation: the item stocks are immediately returned to local inventory, and the status updates to `VOID` locally and synchronizes to the server.
 
 ### Phase 5: Shift Closing & Cash Settlement (Z-Report)
+
 1. Tap the **Report Icon** on the top bar.
 2. Review the **Cash on Hand** total for cash drawer balancing.
 3. Tap **Print Z-Report** to produce a thermal summary slip.
@@ -132,4 +142,5 @@ To generate a standalone `.apk` for installing directly on cashier smartphones:
 ---
 
 ## 📜 License
+
 Licensed under the Apache-2.0 License.
